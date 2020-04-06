@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 
@@ -24,6 +25,11 @@ public class HumanBodyTracker : MonoBehaviour
     [SerializeField]
     [Tooltip("The ARHumanBodyManager which will produce body tracking events.")]
     private ARHumanBodyManager humanBodyManager;
+
+    [SerializeField]
+    private Text debugText;
+
+    private BoneTracker[] boneTrackers;
 
     private Dictionary<TrackableId, HumanBoneController> skeletonTracker = new Dictionary<TrackableId, HumanBoneController>();
 
@@ -71,6 +77,14 @@ public class HumanBodyTracker : MonoBehaviour
                 skeletonTracker.Add(humanBody.trackableId, humanBoneController);
             }
 
+            if (boneTrackers != null)
+            {
+                boneTrackers = humanBoneController.skeletonRoot.GetComponentsInChildren<BoneTracker>();
+                foreach (BoneTracker boneTracker in boneTrackers)
+                {
+                    debugText.text += $"Bone: {boneTracker.transform.parent.name} Position: {boneTracker.transform.position}\n";
+                }
+            }
             humanBoneController.InitializeSkeletonJoints();
             humanBoneController.ApplyBodyPose(humanBody, Vector3.zero);
 
@@ -79,6 +93,7 @@ public class HumanBodyTracker : MonoBehaviour
 
             HumanBodyTrackerUI.Instance.humanBoneControllerText.text = $"{this.gameObject.name} {humanBoneController.name} Position: {humanBoneController.transform.position}\n"+
             $"LocalPosition: {humanBoneController.transform.localPosition}";
+
         }
 
         foreach (var humanBody in eventArgs.updated)
@@ -87,7 +102,13 @@ public class HumanBodyTracker : MonoBehaviour
             {
                 humanBoneController.ApplyBodyPose(humanBody, Vector3.zero);
             }
-
+            if (boneTrackers != null)
+            {
+                foreach (BoneTracker boneTracker in boneTrackers)
+                {
+                    debugText.text += $"Bone: {boneTracker.transform.parent.name} Position: {boneTracker.transform.position}\n";
+                }
+            }
             HumanBodyTrackerUI.Instance.humanBodyText.text = $"{this.gameObject.name} {humanBody.name} Position: {humanBody.transform.position}\n"+
             $"LocalPosition: {humanBody.transform.localPosition}";
 
